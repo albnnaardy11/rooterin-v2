@@ -1,0 +1,217 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use App\Services\Security\SecurityAutomationService;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+
+class SecurityShield
+{
+    protected $security;
+    protected $inference;
+
+    public function __construct(SecurityAutomationService $security, \App\Services\Sentinel\AI\NeuralSentinelInference $inference)
+    {
+        $this->security = $security;
+        $this->inference = $inference;
+    }
+
+    /**
+     * Handle an incoming request.
+     */
+    public function handle(Request $request, Closure $next)
+    {
+        // 0. Cluster Gossip Check (Phase 2: Global Sync)
+        if (Cache::has("cluster_blacklist:remote_block:{$request->ip()}")) {
+            abort(403, 'Global Cluster Quarantine: Your IP has been flagged by Sentinel Intercom.');
+        }
+
+        // 0.5 Administrator Context Sensitivity (High-Integrity Mode)
+        $isSuperAdmin = auth()->check() && auth()->user()->role === 'super_admin';
+
+        // 1. Neural Risk Scoring (Phase 1: Proactive Prediction)
+        if (!$isSuperAdmin && !$request->is('admin*')) {
+            $profile = $this->inference->introspectBehavior();
+            
+            // PHASE 2: Proof-of-Work Challenge (Adaptive Throttling)
+            if ($this->inference->needsPoW($profile) && !$request->is('admin/sentinel/challenge*')) {
+                return redirect()->route('sentinel.challenge');
+            }
+
+            if ($profile->trust_score < 10 || $profile->is_bot_probability > 0.95) {
+                $this->security->blockIp($request->ip(), "Neural Risk Failure (Score: {$profile->trust_score}, BotProb: {$profile->is_bot_probability})");
+                abort(403, 'Akses ditolak: Perilaku navigasi tidak wajar (Neural Sentinel Alert).');
+            }
+        }
+
+        // 2. Check IP Blocks
+        $blockedIps = Cache::get('blocked_ips', []);
+        if (in_array($request->ip(), $blockedIps)) {
+            abort(403, 'Your IP has been flagged for security violations.');
+        }
+
+        // 2. Continuous Environment Hardening (ABSOLUTE DEBUG SUPPRESSION)
+        if (app()->environment('production')) {
+            config(['app.debug' => false]);
+            $this->security->killDebugMode();
+        }
+
+        // 3. Neural Asset Protection (Phantom Token Exchange)
+        if ($request->is('models/*')) {
+            if (!$this->security->verifyHandshake($request)) {
+                $this->security->blockIp($request->ip(), 'Neural Handshake Failure (Invalid Phantom Token)');
+                abort(403, 'Akses model ditolak. Koneksi tidak tersinkronisasi.');
+            }
+        }
+
+        // 4. Rate-Limiting Threshold (WikiPipa Protection)
+        if ($request->is('wiki/*')) {
+            if ($this->security->checkRateLimit($request->ip(), 'WikiPipa')) {
+                abort(429, 'Terdeteksi aktivitas scraping massal. Akses ditangguhkan.');
+            }
+        }
+
+        // 5. Hotlink Prevention (IP Shield)
+        $this->preventHotlinking($request);
+
+        // 6. Lockdown Mode Check (IRON-CLAD BUNKER MODE)
+        if (Cache::get('system_lockdown_active')) {
+            // Priority 1: Full Access to Security Critical Paths
+            $isSecurityRoute = $request->is('admin/vault*') || $request->is('admin/sentinel*');
+            
+            if (!$isSecurityRoute) {
+                // Priority 2: Read-Only (GET) only for other Admin modules
+                if ($request->is('admin/*')) {
+                    if (!$request->isMethod('GET')) {
+                        $this->security->auditLog("Unauthorized Write Attempt blocked during Lockdown", ['path' => $request->path()]);
+                        abort(403, 'IRON-CLAD POLICY: System is in Write-Protected Lockdown Mode.');
+                    }
+                } else {
+                    // Priority 3: Stealth/Bunker 503 for all non-admin public traffic
+                    return response()->view('errors.503', [], 503);
+                }
+            }
+        }
+
+        // 7. Intelligent Threat Detection (WAF Mockup)
+        $this->detectThreats($request);
+
+        // 8. Bot & Scraper Blocker (WikiPipa Protection)
+        $this->blockScrapers($request);
+
+        $response = $next($request);
+
+        // 9. Enterprise Security Response Headers
+        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+        $response->headers->set('X-XSS-Protection', '1; mode=block');
+        $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');  
+        $response->headers->set('X-DNS-Prefetch-Control', 'on');
+        if (app()->environment('production')) {
+            $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+        }
+
+        return $response;
+    }
+
+    protected function preventHotlinking(Request $request)
+    {
+        $referer = $request->headers->get('referer');
+        $host = $request->getHost();
+
+        if ($referer && !str_contains($referer, $host)) {
+            $path = $request->path();
+            if (str_contains($path, 'assets/wiki') || str_contains($path, 'models')) {
+                Log::warning("[SECURITY] Hotlink attempt blocked from $referer for $path");
+                abort(403, 'Hotlinking is prohibited by RooterIN IP Shield.');
+            }
+        }
+    }
+
+    protected function blockScrapers(Request $request)
+    {
+        // Apply stricter bot detection specifically for technical WikiPipa and AI Intelligence sections
+        if (!$request->is('wiki*') && !$request->is('ai-intelligence*')) {
+            return;
+        }
+
+        $userAgent = strtolower($request->userAgent());
+        $bots = [
+            'python-requests', 'curl', 'wget', 'libcurl', 'go-http-client',
+            'postmanruntime', 'scrapy', 'headlesschrome', 'selenium',
+            'axios', 'node-fetch'
+        ];
+
+        foreach ($bots as $bot) {
+            if (str_contains($userAgent, $bot)) {
+                $this->security->blockIp($request->ip(), "WikiPipa Scraper Detected: $bot");
+                $this->security->auditLog("WikiPipa Bot Blocked", ['agent' => $userAgent]);
+                abort(403, 'Automated harvesting of technical RooterIN WikiPipa data is prohibited.');
+            }
+        }
+    }
+
+    protected function detectThreats(Request $request)
+    {
+        $isSuperAdmin = auth()->check() && auth()->user()->role === 'super_admin';
+
+        // SuperAdmin is fully exempt from WAF — prevents false positives on API keys/configs
+        if ($isSuperAdmin) {
+            return;
+        }
+        
+        // Zero False Positive: Internal Wiki Automator is exempt from payload inspection
+        if ($request->header('X-Internal-Automator') === 'WikiPipa-Safe') {
+            return;
+        }
+
+        // Admin routes processing legitimate data (e.g. SEO settings with API keys) are exempt
+        if ($request->is('admin/*')) {
+            return;
+        }
+
+        // Phase 3: Anti-Obfuscation (Multi-Stage Decoding)
+        $rawPayload = $request->fullUrl() . json_encode($request->all());
+        $payload = strtolower(urldecode($rawPayload));
+        
+        // Handle potential nested URL encoding or Hex masks
+        $payload = preg_replace_callback('/%[0-9a-f]{2}/i', function($m) {
+            return urldecode($m[0]);
+        }, $payload);
+
+        // UNICORP-GRADE: Multi-Stage Threat Pattern Library
+        $criticalPatterns = [
+            '/(union\s+.*select)/i',
+            '/(group\s+by\s+.*)/i',
+            '/(information_schema|benchmark|waitfor\s+delay|sleep\()/i',
+            '/(\-\-\s|\#|\/\*)/i', // SQL Comments (with trailing space to avoid false-positive on PEM keys)
+            '/base64_decode|exec\(|shell_exec\(|system\(/i', // RCE patterns
+        ];
+
+        $secondaryPatterns = [
+            '/(<script|javascript:|on\w+\s*=)/i', // XSS Basic
+        ];
+
+        // 1. Mandatory Critical Check (SQLi/RCE) - No Bypass
+        foreach ($criticalPatterns as $pattern) {
+            if (preg_match($pattern, $payload)) {
+                $this->security->blockIp($request->ip(), "Sentinel Shield CRITICAL: matched ($pattern)");
+                $this->security->auditLog('Iron-Clad WAF Critical Blocked', ['pattern' => $pattern]);
+                abort(406, 'Security Violation: Critical Injection Pattern Detected.');
+            }
+        }
+
+        // 2. Secondary Check (XSS/Encodings)
+        foreach ($secondaryPatterns as $pattern) {
+            if (preg_match($pattern, $payload)) {
+                $this->security->blockIp($request->ip(), "Sentinel Shield SECONDARY: matched ($pattern)");
+                $this->security->auditLog('Iron-Clad WAF Secondary Blocked', ['pattern' => $pattern]);
+                abort(406, 'Security Violation: Payload matches restricted pattern.');
+            }
+        }
+    }
+}

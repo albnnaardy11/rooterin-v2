@@ -1,0 +1,14 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /login
+Disallow: /logout
+Disallow: /api/
+Disallow: /models/
+Allow: /
+
+User-agent: Googlebot
+Disallow: /admin/
+Disallow: /login
+Allow: /sitemap.xml
+
+Sitemap: https://rooterin.com/sitemap.xml
