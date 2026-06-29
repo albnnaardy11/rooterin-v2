@@ -359,7 +359,7 @@ class SentinelService
         // Simple A/B variation list
         $variations = [
             'Diskon 25% Khusus Hari Ini & Garansi uang kembali!',
-            'Respon Cepat 15 Menit - Solusi Pipa Tanpa Bongkar!',
+            'Respon Cepat - Solusi Pipa Tanpa Bongkar!',
             'Promo Akhir Pekan: Survei Gratis & Tanpa Biaya Tambahan!',
             'Tukang Rooter Profesional - Bayar Setelah Selesai!'
         ];
