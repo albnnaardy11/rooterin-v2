@@ -100,7 +100,16 @@ class SeoController extends Controller
             ->latest()
             ->get();
 
-        return view('admin.seo.index', compact('settings', 'redirects', 'robotsContent', 'topPages', 'deviceStats', 'keywords', 'cities', 'reviews', 'healthData', 'errorLogs', 'gscData', 'orphanPages', 'autoHeals', 'gscService', 'crawlLogs', 'orphanCrawlCount', 'cannibalSuggestions'));
+        $sloganVariationsRaw = SeoSetting::where('key', 'market_urgency_variations')->first()?->value;
+        $sloganVariations = [];
+        if ($sloganVariationsRaw) {
+            $decoded = json_decode($sloganVariationsRaw, true);
+            if (is_array($decoded)) {
+                $sloganVariations = $decoded;
+            }
+        }
+
+        return view('admin.seo.index', compact('settings', 'redirects', 'robotsContent', 'topPages', 'deviceStats', 'keywords', 'cities', 'reviews', 'healthData', 'errorLogs', 'gscData', 'orphanPages', 'autoHeals', 'gscService', 'crawlLogs', 'orphanCrawlCount', 'cannibalSuggestions', 'sloganVariations'));
     }
 
     public function analyze(Request $request, SeoGraderService $grader)
@@ -244,6 +253,62 @@ class SeoController extends Controller
             return back()->with('error', 'Gagal meluncurkan Index Rocket. Periksa koneksi API Google Anda.');
         }
     }
+    /**
+     * Tambah custom slogan ke market_urgency_variations list.
+     */
+    public function storeSloganVariation(Request $request)
+    {
+        $request->validate([
+            'slogan' => 'required|string|max:200',
+        ]);
+
+        $raw = SeoSetting::where('key', 'market_urgency_variations')->first()?->value;
+        $list = [];
+        if ($raw) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $list = $decoded;
+            }
+        }
+
+        $newSlogan = trim($request->input('slogan'));
+
+        // Cegah duplikat
+        if (!in_array($newSlogan, $list)) {
+            $list[] = $newSlogan;
+            SeoSetting::set('market_urgency_variations', json_encode($list, JSON_UNESCAPED_UNICODE));
+        }
+
+        return back()->with('success', 'Slogan variasi berhasil ditambahkan!');
+    }
+
+    /**
+     * Hapus slogan dari market_urgency_variations list berdasarkan index.
+     */
+    public function deleteSloganVariation(Request $request)
+    {
+        $request->validate([
+            'index' => 'required|integer|min:0',
+        ]);
+
+        $raw = SeoSetting::where('key', 'market_urgency_variations')->first()?->value;
+        $list = [];
+        if ($raw) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $list = $decoded;
+            }
+        }
+
+        $index = (int) $request->input('index');
+        if (isset($list[$index])) {
+            array_splice($list, $index, 1);
+            SeoSetting::set('market_urgency_variations', json_encode($list, JSON_UNESCAPED_UNICODE));
+        }
+
+        return back()->with('success', 'Slogan variasi berhasil dihapus.');
+    }
+
     public function executeGlobalAlgorithm(GoogleIndexingService $indexingService, \App\Services\Seo\SeoAutomationOptimizer $optimizer)
     {
         try {

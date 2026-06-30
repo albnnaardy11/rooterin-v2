@@ -353,23 +353,39 @@ class SentinelService
 
     /**
      * SEO SELF-OPTIMIZATION: Market Urgency Rotator (A/B Testing)
+     * Menggabungkan default sample list dengan custom list dari admin.
      */
     protected function optimizeSeoConversion()
     {
-        // Simple A/B variation list
-        $variations = [
+        // Built-in default sample list (tidak bisa dihapus, hanya sebagai fallback)
+        $defaultVariations = [
             'Diskon 25% Khusus Hari Ini & Garansi uang kembali!',
             'Respon Cepat - Solusi Pipa Tanpa Bongkar!',
             'Promo Akhir Pekan: Survei Gratis & Tanpa Biaya Tambahan!',
             'Tukang Rooter Profesional - Bayar Setelah Selesai!'
         ];
 
+        // Custom list dari admin (disimpan di DB sebagai JSON array)
+        $customVariationsRaw = SeoSetting::where('key', 'market_urgency_variations')->first()?->value;
+        $customVariations = [];
+        if ($customVariationsRaw) {
+            $decoded = json_decode($customVariationsRaw, true);
+            if (is_array($decoded)) {
+                $customVariations = $decoded;
+            }
+        }
+
+        // Merge: custom list diprioritaskan (tampil duluan), default tetap tersedia
+        $allVariations = array_merge($customVariations, $defaultVariations);
+        $allVariations = array_filter($allVariations); // buang entry kosong
+        $allVariations = array_values($allVariations);
+
         // Check if current CTR is low (Simplified check)
         // Here we'd typically query EventLog for conversion rate
         $conversionRate = 0.02; // Mock CR (2%)
         
         if ($conversionRate < 0.05) { // If CR below 5%, rotate
-            $newSlogan = $variations[array_rand($variations)];
+            $newSlogan = $allVariations[array_rand($allVariations)];
             SeoSetting::updateOrCreate(['key' => 'market_urgency'], ['value' => $newSlogan]);
             Log::info("[SENTINEL] SEO Optimization: Low CR detected. Updated Market Urgency slogan to: " . $newSlogan);
         }

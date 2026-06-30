@@ -138,6 +138,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'audit', 'verified']
         // Global Algorithm Executor
         Route::post('/seo/execute-global-algorithm', [\App\Http\Controllers\Admin\SeoController::class, 'executeGlobalAlgorithm'])->name('seo.execute-global-algorithm');
 
+        // Market Urgency Slogan Variations
+        Route::post('/seo/slogan-variations', [\App\Http\Controllers\Admin\SeoController::class, 'storeSloganVariation'])->name('seo.slogan-variations.store');
+        Route::delete('/seo/slogan-variations', [\App\Http\Controllers\Admin\SeoController::class, 'deleteSloganVariation'])->name('seo.slogan-variations.destroy');
+
         // User Management (Super Admin Exclusive)
         Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
     });

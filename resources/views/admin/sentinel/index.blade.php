@@ -57,47 +57,7 @@
             @endforeach
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch pt-8">
-            <!-- ROW 1: CORE MONITORING (3 Columns Equal Height) -->
-            <!-- 1. Cloud AI Intelligence Monitor -->
-            <div class="bg-slate-900/50 border border-white/5 rounded-3xl p-8 flex flex-col">
-                <h3 class="text-xs font-black text-white uppercase tracking-widest mb-8 flex items-center gap-2">
-                    <i class="ri-brain-line text-primary"></i> Neural Cloud Interface
-                </h3>
-                <div class="space-y-4 flex-1">
-                    <div class="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-bold text-white truncate">Google Gemini v2.0 Flash</p>
-                            <p class="text-[8px] text-slate-500 font-mono mt-0.5">Multi-Engine Neural Pool</p>
-                        </div>
-                        <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase bg-green-500/10 text-green-500">
-                            ACTIVE
-                        </span>
-                    </div>
-                    
-                    <div class="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">
-                        <div>
-                            <p class="text-[10px] font-bold text-white">ForensicGuard v2.0</p>
-                            <p class="text-[8px] text-slate-500 font-mono mt-0.5">5-Layer Validation Matrix</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                            <span class="text-[8px] font-black text-green-500 uppercase">ENFORCED</span>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 p-4 bg-primary/5 rounded-2xl border border-primary/10">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-[8px] font-black text-slate-500 uppercase">Neural Pool Load Balancing</span>
-                            <span class="text-[10px] font-mono text-primary">{{ $healthData['ai_integrity']['key_pool']['active_nodes'] }} Nodes Active</span>
-                        </div>
-                        <div class="h-1 bg-white/5 rounded-full overflow-hidden">
-                            <div class="h-full bg-primary" style="width: {{ $healthData['ai_integrity']['key_pool']['usage_percent'] }}%"></div>
-                        </div>
-                        <p class="text-[7px] text-slate-500 uppercase mt-2 text-right">RPM Enforcement: <span class="text-green-500 font-bold">15/min</span></p>
-                    </div>
-                </div>
-            </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch pt-8">
 
             <!-- 2. Resource Monitor -->
             <div class="bg-slate-900/50 border border-white/5 rounded-3xl p-8 flex flex-col">
@@ -251,12 +211,65 @@
                     </div>
                     <div class="p-4 bg-white/5 rounded-2xl border border-white/5 flex flex-col justify-center">
                         <p class="text-[8px] font-black text-slate-500 uppercase mb-2">Gateway Pulse</p>
-                        <p class="text-xl font-black text-white italic tracking-tighter">{{ $healthData['security']['audit']['intro_pulse'] ?? 'N/A' }}</p>
+                    <p class="text-xl font-black text-white italic tracking-tighter">{{ $healthData['security']['audit']['intro_pulse'] ?? 'N/A' }}</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Relational Database Pulse -->
+            <!-- ROW 2 RIGHT: 3 mini status cards stacked vertically -->
+            <div class="flex flex-col gap-4">
+
+                <!-- Security Audit -->
+                <div class="bg-slate-900/50 border border-white/5 rounded-3xl p-6 flex items-center justify-between flex-1">
+                    <div>
+                        <p class="text-[10px] font-black text-white uppercase mb-1 tracking-tight">Security Audit</p>
+                        <p class="text-xs font-mono text-slate-500">Zero Trust Logging Active</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span class="text-[9px] font-black text-green-500 uppercase">NOMINAL</span>
+                    </div>
+                </div>
+
+                <!-- Lockdown Status -->
+                <div class="bg-slate-900/50 border border-white/5 rounded-3xl p-6 flex flex-col justify-between flex-1">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[8px] font-black text-slate-500 uppercase mb-2">System Lockdown Status</p>
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 rounded-full {{ $healthData['security']['lockdown']['active'] ? 'bg-red-500 animate-pulse' : 'bg-green-500' }}"></div>
+                                <p class="text-xl font-black {{ $healthData['security']['lockdown']['active'] ? 'text-red-500' : 'text-green-500' }} italic tracking-tighter">
+                                    {{ $healthData['security']['lockdown']['active'] ? 'ACTIVE LOCKDOWN' : 'SECURED / NOMINAL' }}
+                                </p>
+                            </div>
+                        </div>
+                        <i class="ri-shield-keyhole-line text-3xl {{ $healthData['security']['lockdown']['active'] ? 'text-red-500' : 'text-slate-500' }}"></i>
+                    </div>
+                </div>
+
+                <!-- Kill Switch / Bridge -->
+                <div class="bg-slate-900/50 border border-white/5 rounded-3xl p-6 flex-1 flex flex-col justify-between">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-[8px] font-black text-slate-500 uppercase mb-1">API Kill-Switch</p>
+                            <p class="text-sm font-black {{ $healthData['security']['lockdown']['kill_switch'] === 'ENABLED' ? 'text-green-500' : 'text-red-500' }} italic">
+                                {{ $healthData['security']['lockdown']['kill_switch'] }}
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[8px] font-black text-slate-500 uppercase mb-1">Entropy Guard</p>
+                            <p class="text-sm font-black text-primary italic">{{ $healthData['security']['lockdown']['entropy_guard'] }}</p>
+                        </div>
+                    </div>
+                    <div class="pt-4 border-t border-white/5 flex justify-between items-center mt-4">
+                        <p class="text-[10px] font-black text-white uppercase tracking-tight">Neural Bridge</p>
+                        <span class="text-[9px] font-black text-green-500 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20">CONNECTED</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Relational Database Pulse (full width) -->
             <div class="lg:col-span-2 bg-slate-900/50 border border-white/5 rounded-3xl p-8 relative overflow-hidden flex flex-col">
                 <div class="absolute inset-0 opacity-5 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
                 <div class="flex items-center justify-between mb-8">
@@ -285,54 +298,6 @@
                 </div>
             </div>
 
-            <!-- ROW 3: EMERGENCY PROTOCOLS (Symmetrical bottom cards) -->
-            <!-- Placeholder to keep col 1 alignment or for status logs if desired -->
-            <div class="bg-slate-900/50 border border-white/5 rounded-3xl p-6 flex items-center justify-between">
-                <div>
-                    <p class="text-[10px] font-black text-white uppercase mb-1 tracking-tight">Security Audit</p>
-                    <p class="text-xs font-mono text-slate-500">Zero Trust Logging Active</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
-                    <span class="text-[9px] font-black text-green-500 uppercase">NOMINAL</span>
-                </div>
-            </div>
-
-            <!-- Lockdown Status -->
-            <div class="bg-slate-900/50 border border-white/5 rounded-3xl p-6 flex flex-col justify-between h-full">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-[8px] font-black text-slate-500 uppercase mb-2">System Lockdown Status</p>
-                        <div class="flex items-center gap-3">
-                            <div class="w-3 h-3 rounded-full {{ $healthData['security']['lockdown']['active'] ? 'bg-red-500 animate-pulse' : 'bg-green-500' }}"></div>
-                            <p class="text-xl font-black {{ $healthData['security']['lockdown']['active'] ? 'text-red-500' : 'text-green-500' }} italic tracking-tighter">
-                                {{ $healthData['security']['lockdown']['active'] ? 'ACTIVE LOCKDOWN' : 'SECURED / NOMINAL' }}
-                            </p>
-                        </div>
-                    </div>
-                    <i class="ri-shield-keyhole-line text-3xl {{ $healthData['security']['lockdown']['active'] ? 'text-red-500' : 'text-slate-500' }}"></i>
-                </div>
-            </div>
-
-            <!-- Kill Switch / Bridge -->
-            <div class="bg-slate-900/50 border border-white/5 rounded-3xl p-6 h-full flex flex-col justify-between">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <p class="text-[8px] font-black text-slate-500 uppercase mb-1">API Kill-Switch</p>
-                        <p class="text-sm font-black {{ $healthData['security']['lockdown']['kill_switch'] === 'ENABLED' ? 'text-green-500' : 'text-red-500' }} italic">
-                            {{ $healthData['security']['lockdown']['kill_switch'] }}
-                        </p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[8px] font-black text-slate-500 uppercase mb-1">Entropy Guard</p>
-                        <p class="text-sm font-black text-primary italic">{{ $healthData['security']['lockdown']['entropy_guard'] }}</p>
-                    </div>
-                </div>
-                <div class="pt-4 border-t border-white/5 flex justify-between items-center mt-4">
-                    <p class="text-[10px] font-black text-white uppercase tracking-tight">Neural Bridge</p>
-                    <span class="text-[9px] font-black text-green-500 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20">CONNECTED</span>
-                </div>
-            </div>
         </div>
     </div>
 </div>

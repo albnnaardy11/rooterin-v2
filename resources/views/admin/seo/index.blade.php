@@ -174,14 +174,18 @@
                         <input type="text" name="site_name" value="{{ $settings['site_name'] ?? '' }}" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white">
                     </div>
                     <div x-data="{
-                        slogans: [
-                            'Respon Cepat 15 Menit - Solusi Pipa Tanpa Bongkar!',
-                            'Promo Akhir Pekan: Layanan Darurat 24 Jam Bebas Biaya Survei!',
-                            'Tukang Rooter Profesional - Bayar Setelah Selesai!',
-                            'Pipa Mampet Lancar Hari Ini Atau Uang Kembali 100%!'
+                        defaultSlogans: [
+                            'Diskon 25% Khusus Hari Ini & Garansi uang kembali!',
+                            'Respon Cepat - Solusi Pipa Tanpa Bongkar!',
+                            'Promo Akhir Pekan: Survei Gratis & Tanpa Biaya Tambahan!',
+                            'Tukang Rooter Profesional - Bayar Setelah Selesai!'
                         ],
                         generate() {
-                            document.getElementById('market_urgency_input').value = this.slogans[Math.floor(Math.random() * this.slogans.length)];
+                            const all = this.defaultSlogans;
+                            document.getElementById('market_urgency_input').value = all[Math.floor(Math.random() * all.length)];
+                        },
+                        useSlogan(text) {
+                            document.getElementById('market_urgency_input').value = text;
                         }
                     }">
                         <label class="flex justify-between items-center text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">
@@ -192,7 +196,65 @@
                         </label>
                         <input type="text" id="market_urgency_input" name="market_urgency" value="{{ $settings['market_urgency'] ?? '' }}" placeholder="Diskon 20% & Garansi 1 Tahun" class="w-full bg-white/5 border border-white/10 focus:border-emerald-500/50 rounded-2xl px-6 py-4 text-white transition-all">
                         <p class="mt-2 text-[8px] text-slate-500 uppercase font-bold tracking-widest">This will be automatically appended to meta titles to boost CTR.</p>
+
+                        {{-- === SAMPLE LIST (Built-in, tidak bisa dihapus) === --}}
+                        <div class="mt-6 p-5 bg-white/3 rounded-2xl border border-white/5">
+                            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <i class="ri-shield-star-line text-emerald-500"></i>
+                                Default Samples (Built-in) — Klik untuk pakai
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="slogan in defaultSlogans" :key="slogan">
+                                    <button type="button"
+                                        @click="useSlogan(slogan)"
+                                        x-text="slogan"
+                                        class="text-[10px] px-3 py-1.5 rounded-xl bg-slate-800/80 text-slate-300 border border-white/10 hover:border-emerald-500/40 hover:text-emerald-300 hover:bg-emerald-500/10 transition-all text-left cursor-pointer">
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        {{-- === CUSTOM LIST (Buatan Admin) === --}}
+                        <div class="mt-4 p-5 bg-white/3 rounded-2xl border border-white/5">
+                            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <i class="ri-edit-box-line text-violet-400"></i>
+                                Custom Slogans Anda — Klik untuk pakai, ✕ untuk hapus
+                            </p>
+
+                            @if(count($sloganVariations) > 0)
+                                <div class="flex flex-wrap gap-2 mb-4">
+                                    @foreach($sloganVariations as $idx => $slogan)
+                                        <div class="flex items-center gap-1 bg-violet-500/10 border border-violet-500/20 rounded-xl overflow-hidden">
+                                            <button type="button"
+                                                @click="useSlogan('{{ addslashes($slogan) }}')"
+                                                class="text-[10px] px-3 py-1.5 text-violet-300 hover:text-white transition-all text-left">
+                                                {{ $slogan }}
+                                            </button>
+                                            <form action="{{ route('admin.seo.slogan-variations.destroy') }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <input type="hidden" name="index" value="{{ $idx }}">
+                                                <button type="submit" class="px-2 py-1.5 text-slate-500 hover:text-red-400 transition-all text-xs" title="Hapus slogan ini">✕</button>
+                                            </form>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <p class="text-[10px] text-slate-600 italic mb-4">Belum ada custom slogan. Tambahkan di bawah.</p>
+                            @endif
+
+                            {{-- Form tambah custom slogan --}}
+                            <form action="{{ route('admin.seo.slogan-variations.store') }}" method="POST" class="flex gap-3 mt-2">
+                                @csrf
+                                <input type="text" name="slogan" placeholder="Contoh: Gratis Ongkir + Garansi 2 Tahun!" maxlength="200" required
+                                    class="flex-1 bg-white/5 border border-white/10 focus:border-violet-500/50 rounded-xl px-4 py-2.5 text-white text-sm transition-all placeholder-slate-600">
+                                <button type="submit" class="px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap">
+                                    <i class="ri-add-line"></i> Tambah Slogan
+                                </button>
+                            </form>
+                        </div>
                     </div>
+
                     <div>
                         <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Google Cloud Service Account JSON (Indexing API)</label>
                         <textarea name="google_indexing_key" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-mono text-xs h-32" placeholder='{"type": "service_account", ...}'>{{ $settings['google_indexing_key'] ?? '' }}</textarea>
