@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver; // Assuming GD driver
-use Gemini;
 use App\Models\Media;
 
 class MediaOptimizationService
@@ -37,15 +36,15 @@ class MediaOptimizationService
             
             $image->encode(new \Intervention\Image\Encoders\WebpEncoder(80))->save($webpPath);
 
-            // 2. Generate AI Alt Tag & Long Description via Gemini Vision
-            $aiResult = $this->generateAiAltTag($path);
+            // 2. Generate Semantic Alt Tag & Long Description based on Filename
+            $aiResult = $this->generateSemanticAltTag($path);
 
             // 3. Update DB record if exists
             $media = Media::where('file_path', 'like', '%' . basename($path))->first();
             if ($media) {
                 $meta = is_array($media->metadata) ? $media->metadata : [];
                 $meta['long_description'] = $aiResult['long_desc'] ?? null;
-                $meta['ai_processed_at'] = now()->toIso8601String();
+                $meta['semantic_processed_at'] = now()->toIso8601String();
 
                 $media->update([
                     'file_path' => str_replace(public_path(), '', $webpPath),
@@ -65,44 +64,27 @@ class MediaOptimizationService
         }
     }
 
-    protected function generateAiAltTag($imagePath)
+    protected function generateSemanticAltTag($imagePath)
     {
         try {
-            $apiKey = env('GEMINI_API_KEY');
-            if (!$apiKey) return null;
-
-            $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" . $apiKey;
-
-            // UNICORP-GRADE: Semantic Enrichment Prompt
-            $prompt = "Analyze this plumbing/drain cleaning image. 
-            1. Provide a short 5-word SEO-friendly Alt text (Indonesian).
-            2. Provide a 30-word Semantic Long Description for accessibility (Indonesian).
-            Return ONLY JSON: {\"alt\": \"...\", \"long_desc\": \"...\"}";
-
-            $response = \Illuminate\Support\Facades\Http::timeout(30)->post($endpoint, [
-                'contents' => [
-                    [
-                        'parts' => [
-                            ['text' => $prompt],
-                            ['inline_data' => [
-                                'mime_type' => \Illuminate\Support\Facades\File::mimeType($imagePath),
-                                'data' => base64_encode(\Illuminate\Support\Facades\File::get($imagePath))
-                            ]]
-                        ]
-                    ]
-                ]
-            ]);
-
-            if ($response->successful()) {
-                $result = $response->json();
-                $text = $result['candidates'][0]['content']['parts'][0]['text'] ?? null;
-                if ($text && preg_match('/\{.*\}/s', $text, $matches)) {
-                    return json_decode($matches[0], true);
-                }
-            }
-            return null;
+            $filename = pathinfo($imagePath, PATHINFO_FILENAME);
+            
+            // Clean filename: remove dashes, underscores, numbers
+            $cleanName = preg_replace('/[^a-zA-Z\s]/', ' ', str_replace(['-', '_'], ' ', $filename));
+            $cleanName = trim(preg_replace('/\s+/', ' ', $cleanName));
+            
+            // Generate standard SEO-friendly alt text
+            $alt = ucwords($cleanName) . " - Layanan Saluran Pipa Mampet RooterIN";
+            
+            // Semantic Long Description for accessibility
+            $longDesc = "Gambar ilustrasi terkait {$cleanName} yang dikerjakan oleh teknisi profesional RooterIN. Solusi terbaik untuk masalah saluran air mampet dan perawatan pipa di Indonesia.";
+            
+            return [
+                "alt" => substr($alt, 0, 100),
+                "long_desc" => substr($longDesc, 0, 250)
+            ];
         } catch (\Exception $e) {
-            Log::error("[SENTINEL-MEDIA] Semantic Enrichment Failure: " . $e->getMessage());
+            Log::error("[SENTINEL-MEDIA] Semantic Generation Failure: " . $e->getMessage());
             return null;
         }
     }

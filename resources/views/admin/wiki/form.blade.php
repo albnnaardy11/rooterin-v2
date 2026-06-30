@@ -1,6 +1,6 @@
 @extends('admin.layout')
 
-@section('title', $isEdit ? 'Refine Neural Asset: ' . $entity->title : 'Deploy New Neural Entity')
+@section('title', $isEdit ? 'Refine Knowledge Asset: ' . $entity->title : 'Deploy New Knowledge Entity')
 
 @section('content')
 @php 
@@ -21,7 +21,7 @@
                 <div>
                     <span class="text-[10px] font-black text-primary uppercase tracking-[0.4em] block">WikiPipa Authority Builder</span>
                     <h1 class="text-3xl font-heading font-black text-white leading-none tracking-tighter">
-                        {{ $isEdit ? 'Refine' : 'Deploy' }} <span class="text-primary italic">Neural Entity</span>.
+                        {{ $isEdit ? 'Refine' : 'Deploy' }} <span class="text-primary italic">Knowledge Entity</span>.
                     </h1>
                 </div>
             </div>

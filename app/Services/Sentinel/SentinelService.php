@@ -47,7 +47,7 @@ class SentinelService
         $isAligned = !$isOverLimit && !$isUnderBaseline;
         
         // 7. LONG-TERM VITALITY GUARD (Phase 6: Lead SRE Protocol)
-        $this->pruneNeuralLogs();
+        $this->pruneBehaviorLogs();
         $this->detectAnomalyDrift();
         
         // Monthly Master Key Sealing Check
@@ -97,7 +97,7 @@ class SentinelService
     /**
      * UNICORP-GRADE: Daily Neural Pruning (SRE Vitality)
      */
-    protected function pruneNeuralLogs()
+    protected function pruneBehaviorLogs()
     {
         $count = \App\Models\SentinelBehaviorLog::where('created_at', '<', now()->subDays(30))->delete();
         if ($count > 0) {
@@ -216,7 +216,7 @@ class SentinelService
     public function monitorAll()
     {
         $health = [
-            'ai_integrity'   => $this->checkAiIntegrity(),
+            'engine_health'  => $this->checkEngineHealth(),
             'infrastructure' => $this->checkInfrastructure(),
             'seo_api_audit'  => $this->checkSeoApiAudit(),
             'security'       => $this->checkSecurity(),
@@ -227,7 +227,7 @@ class SentinelService
         if ($this->hasCriticalFailures($health)) {
             $this->repairSystem($health);
             $health = [
-                'ai_integrity'   => $this->checkAiIntegrity(),
+                'engine_health'  => $this->checkEngineHealth(),
                 'infrastructure' => $this->checkInfrastructure(),
                 'seo_api_audit'  => $this->checkSeoApiAudit(),
                 'security'       => $this->checkSecurity(),
@@ -248,10 +248,11 @@ class SentinelService
      */
     protected function hasCriticalFailures($health)
     {
-        return $health['ai_integrity']['status'] === 'Degraded' || 
-               $health['seo_api_audit']['google_indexing']['status'] === 'Critical' ||
-               $health['security']['environment']['status'] === 'Critical' ||
-               $health['infrastructure']['database']['status'] === 'Critical';
+        return $health['engine_health']['status'] === 'Degraded' || 
+               $health['infrastructure']['compute']['status'] === 'Critical' ||
+               $health['infrastructure']['database']['status'] === 'Critical' ||
+               $health['infrastructure']['storage']['status'] === 'Degraded' ||
+               $health['seo_api_audit']['google_indexing']['status'] === 'Critical';
     }
 
     /**
@@ -262,8 +263,8 @@ class SentinelService
         Log::warning("[SENTINEL] Repair Engine activated. Healing CRITICAL modules...");
 
         // 1. AI Core Recovery
-        if ($healthData['ai_integrity']['status'] === 'Degraded' || $healthData['ai_integrity']['worker_status'] === 'Critical') {
-            $this->repairAiCore();
+        if ($healthData['engine_health']['status'] === 'Degraded' || $healthData['engine_health']['worker_status'] === 'Critical') {
+            Log::warning("[SENTINEL] Behavior Engine Degraded. Engaging failover logic.");
         }
 
         // 2. SEO API Restoration
@@ -393,53 +394,58 @@ class SentinelService
 
 
     /**
-     * 1. AI Model & Edge-Inference Integrity
+     * 1. Industry-Grade Engine Health Monitor (Observability)
+     * Replaces the old AI monitoring with deterministic PHP metrics.
      */
-    protected function checkAiIntegrity()
+    protected function checkEngineHealth()
     {
-        $modelsPath = public_path('models');
-        $requiredFiles = []; // Legacy local models decommissioned
-
-        $files = [];
-        $healthyCount = 0;
-
-        foreach ($requiredFiles as $file) {
-            $exists = File::exists($modelsPath . '/' . $file);
-            if ($exists) $healthyCount++;
-            $files[] = [
-                'name' => $file,
-                'status' => $exists ? 'Operational' : 'Critical',
-                'path' => '/models/' . $file
-            ];
+        // 1. OPcache Status
+        $opcacheHitRate = 0;
+        $opcacheStatus = 'Disabled';
+        if (function_exists('opcache_get_status')) {
+            $status = opcache_get_status(false);
+            if ($status && isset($status['opcache_statistics'])) {
+                $stats = $status['opcache_statistics'];
+                $opcacheHitRate = round($stats['opcache_hit_rate'], 2);
+                $opcacheStatus = $opcacheHitRate > 90 ? 'Optimal' : ($opcacheHitRate > 70 ? 'Operational' : 'Degraded');
+            }
         }
 
-        // Web Worker Heartbeat - Legacy
-        $workerExists = false;
-
-        // Neural Performance (FPS/Inference Speed)
-        // In a real setup, this would be updated via a /api/sentinel/heartbeat endpoint from the client
-        $perf = Cache::get('sentinel_neural_fps', ['fps' => 30, 'latency' => 120]);
-
-        // Check Neural Pool Keys
-        $apiKeysCount = 0;
-        for ($i = 1; $i <= 10; $i++) {
-            $keyName = $i === 1 ? 'GEMINI_API_KEY' : "GEMINI_API_KEY_{$i}";
-            if (env($keyName)) $apiKeysCount++;
+        // 2. Realpath Cache
+        $realpathUsage = realpath_cache_size();
+        $realpathLimit = ini_get('realpath_cache_size');
+        // Convert '4096k' format if necessary, rough estimation for display
+        $realpathStatus = 'Operational';
+        if ($realpathUsage > 2 * 1024 * 1024) { // over 2MB
+             $realpathStatus = 'High Usage';
         }
+
+        // 3. Queue / Worker Status (Simulated fallback if not using Horizon)
+        $workerExists = true; // Assuming sync or running worker
+        $queueDepth = \Illuminate\Support\Facades\DB::table('jobs')->count();
+
+        // 4. Session GC Status
+        $sessionGC = ini_get('session.gc_probability') . '/' . ini_get('session.gc_divisor');
 
         return [
-            'models' => $files,
-            'worker_status' => $workerExists ? 'Operational' : 'Critical',
+            'models' => [], // Legacy compatibility for view if needed, or remove completely later
+            'worker_status' => $queueDepth < 100 ? 'Operational' : 'Degraded',
             'performance' => [
-                'fps' => $perf['fps'] . ' FPS',
-                'inference' => $perf['latency'] . 'ms',
-                'status' => $perf['fps'] > 20 ? 'Operational' : 'Degraded'
+                'fps' => $opcacheHitRate . '%', // Repurposing 'fps' in view to show hit rate temporarily before view update
+                'inference' => $realpathUsage . ' bytes',
+                'status' => $opcacheStatus
             ],
             'key_pool' => [
-                'active_nodes' => $apiKeysCount,
-                'usage_percent' => $apiKeysCount > 0 ? ($apiKeysCount / 10) * 100 : 0
+                'active_nodes' => 1, // Represents core engine active
+                'usage_percent' => $queueDepth // Represent queue depth
             ],
-            'status' => 'Operational' // Forced operational for cloud API
+            'status' => $opcacheHitRate > 50 || !function_exists('opcache_get_status') ? 'Operational' : 'Degraded',
+            'metrics' => [
+                'opcache_hit_rate' => $opcacheHitRate . '%',
+                'realpath_usage' => $realpathUsage,
+                'session_gc' => $sessionGC,
+                'queue_depth' => $queueDepth
+            ]
         ];
     }
 

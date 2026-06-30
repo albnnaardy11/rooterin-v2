@@ -57,8 +57,8 @@
             <div>
                 <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Global SEO Algorithm Engine</p>
                 <p class="text-xs font-black text-white flex items-center gap-2">
-                    {{ $healthData['ai_integrity']['performance']['fps'] }}
-                    <span class="w-1.5 h-1.5 rounded-full {{ ($healthData['ai_integrity']['performance']['status'] ?? '') === 'Operational' ? 'bg-green-500' : 'bg-yellow-500' }}"></span>
+                    {{ $healthData['engine_health']['metrics']['opcache_hit_rate'] ?? 'N/A' }}
+                    <span class="w-1.5 h-1.5 rounded-full {{ ($healthData['engine_health']['status'] ?? '') === 'Operational' ? 'bg-green-500' : 'bg-yellow-500' }}"></span>
                 </p>
             </div>
         </div>

@@ -26,7 +26,7 @@
             <div class="inline-flex items-center justify-center w-16 h-16 bg-red-500/10 rounded-2xl mb-6">
                 <i class="ri-shield-keyhole-line text-3xl text-red-500 animate-pulse"></i>
             </div>
-            <h1 class="text-white text-xl font-black uppercase tracking-widest mb-2">Neural Throttling Active</h1>
+            <h1 class="text-white text-xl font-black uppercase tracking-widest mb-2">Rate Throttling Active</h1>
             <p class="text-xs leading-relaxed italic">Sistem mendeteksi pola navigasi anomali. Selesaikan tantangan kriptografi di bawah untuk memulihkan reputasi sesi Anda.</p>
         </div>
 
@@ -62,7 +62,7 @@
             const form = document.getElementById('pow-form');
             const tokenInput = document.getElementById('pow_token');
 
-            status.innerText = "Analyzing Neural Footprint...";
+            status.innerText = "Analyzing Risk Footprint...";
             
             // Artificial delay to simulate human focus + CPU work
             let nonce = 0;

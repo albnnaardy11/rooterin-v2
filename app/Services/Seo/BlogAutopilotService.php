@@ -5,11 +5,13 @@ namespace App\Services\Seo;
 use App\Models\Post;
 use App\Models\SeoCity;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class BlogAutopilotService
 {
     /**
-     * "Neural Journalist": Generates a blog post based on current site signals.
+     * INDUSTRY-GRADE: ContentMatrix Engine
+     * Generates a blog post based on current site signals, seasonality, and city saturation.
      */
     public function execute()
     {
@@ -17,20 +19,27 @@ class BlogAutopilotService
         $city = SeoCity::where('is_active', true)->inRandomOrder()->first();
         $cityName = $city ? $city->name : 'Indonesia';
 
-        // 2. Determine "Freshness Signal" (e.g. Weather or Season)
-        $scenarios = [
-            'Hujan' => [
+        // 2. Determine "Freshness Signal" (e.g. Weather or Season) based on current month
+        $month = Carbon::now()->month;
+        $isRainy = in_array($month, [11, 12, 1, 2, 3]);
+
+        $scenarios = [];
+        
+        if ($isRainy) {
+            $scenarios[] = [
                 'title' => "Waspada Saluran Mampet di {$cityName} Saat Musim Hujan: Tips Cegah Banjir di Rumah.",
                 'content' => "Musim hujan telah tiba di {$cityName}. Tim RooterIn mencatat kenaikan kasus pipa mampet akibat sampah yang terbawa arus air hujan. Dalam artikel ini, kami merangkum 5 langkah pencegahan..."
-            ],
-            'Dapur' => [
-                'title' => "Rahasia Dapur {$cityName} Tanpa Bau: Cara Membersihkan Pipa Wastafel dari Lemak Membeku.",
-                'content' => "Pernahkah Anda mencium bau tak sedap dari wastafel? Bagi warga {$cityName}, lemak masakan seringkali membeku di dalam pipa karena suhu air. RooterIn memberikan solusi hemat biaya..."
-            ],
-            'Inovasi' => [
-                'title' => "Teknologi Terbaru RooterIn di {$cityName}: Membersihkan Pipa Tanpa Bongkar Lantai Sama Sekali.",
-                'content' => "Terobosan baru untuk masyarakat {$cityName}. Kami sekarang menggunakan kamera inspeksi dan mesin spiral berkekuatan tinggi untuk memastikan pipa Anda bersih seperti baru."
-            ]
+            ];
+        }
+
+        $scenarios[] = [
+            'title' => "Rahasia Dapur {$cityName} Tanpa Bau: Cara Membersihkan Pipa Wastafel dari Lemak Membeku.",
+            'content' => "Pernahkah Anda mencium bau tak sedap dari wastafel? Bagi warga {$cityName}, lemak masakan seringkali membeku di dalam pipa karena suhu air. RooterIn memberikan solusi hemat biaya..."
+        ];
+
+        $scenarios[] = [
+            'title' => "Layanan Terbaik RooterIn di {$cityName}: Membersihkan Pipa Tanpa Bongkar Lantai Sama Sekali.",
+            'content' => "Terobosan baru untuk masyarakat {$cityName}. Kami sekarang menggunakan kamera inspeksi dan mesin spiral berkekuatan tinggi untuk memastikan pipa Anda bersih seperti baru."
         ];
 
         $scenario = $scenarios[array_rand($scenarios)];

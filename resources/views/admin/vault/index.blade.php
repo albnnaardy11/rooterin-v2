@@ -17,7 +17,7 @@
                     @endif
                     <span class="flex items-center gap-2 text-emerald-500 text-[10px] font-black uppercase tracking-[0.2em]">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        Neural Shield Active
+                        Risk Shield Active
                     </span>
                 </div>
                 <h1 class="text-4xl font-black text-white font-heading mb-2 uppercase tracking-tighter">Security & Access <span class="text-primary tracking-normal">Vault</span></h1>
@@ -158,7 +158,7 @@
         
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             <div>
-                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Neural Assets</p>
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Integrity Assets</p>
                 <p class="text-xs font-bold text-white uppercase">{{ $latestAudit->metrics['neural_assets'] ?? 'N/A' }}</p>
             </div>
             <div>
@@ -195,7 +195,7 @@
             <div class="p-8 border-b border-white/5 flex items-center justify-between">
                 <h3 class="text-white font-heading font-black uppercase tracking-widest text-sm flex items-center gap-3">
                     <i class="ri-robot-2-line text-primary"></i>
-                    Neural Asset Shield
+                    Integrity Asset Shield
                 </h3>
             </div>
             <div class="p-8 space-y-4">
@@ -203,7 +203,7 @@
                     <div class="flex items-center gap-4">
                         <i class="ri-file-code-line text-2xl text-primary"></i>
                         <div>
-                            <p class="text-xs font-bold text-white">Vision Models Protection</p>
+                            <p class="text-xs font-bold text-white">Scraper Protection</p>
                             <p class="text-[10px] text-slate-500">Status: Token-Only Access (Active)</p>
                         </div>
                     </div>
@@ -259,7 +259,7 @@
                         <span class="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Super Admin Only</span>
                     </div>
                     <div class="flex items-center justify-between px-4 py-2 bg-white/5 rounded-xl border border-white/5">
-                        <span class="text-xs font-bold text-white">AI Intelligence</span>
+                        <span class="text-xs font-bold text-white">Market Intelligence</span>
                         <span class="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Super Admin Only</span>
                     </div>
                     <div class="flex items-center justify-between px-4 py-2 bg-white/5 rounded-xl border border-white/5">
@@ -326,10 +326,10 @@
             </div>
             @endif
 
-            <!-- NEURAL ANOMALY HEATMAP -->
+            <!-- RISK ANOMALY HEATMAP -->
             <div class="mt-8 pt-8 border-t border-white/5">
                 <div class="flex items-center justify-between mb-6">
-                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Neural Anomaly Heatmap (Risk Density)</h4>
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Risk Anomaly Heatmap (Risk Density)</h4>
                     <span class="flex items-center gap-2 text-[9px] text-primary font-bold uppercase tracking-widest animate-pulse">
                         <span class="w-1.5 h-1.5 bg-primary rounded-full"></span>
                         Live Telemetry
@@ -406,7 +406,7 @@ function viewForensics(id) {
             }
         })
         .catch(err => {
-            content.innerHTML = '<span class="text-red-500">Decryption Failed: Connection Break in Neural Bridge.</span>';
+            content.innerHTML = '<span class="text-red-500">Decryption Failed: Connection Break in API Bridge.</span>';
         });
 }
 

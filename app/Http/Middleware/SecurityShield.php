@@ -5,18 +5,19 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use App\Services\Security\SecurityAutomationService;
+use App\Services\Sentinel\BotDetectionEngine;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class SecurityShield
 {
     protected $security;
-    protected $inference;
+    protected $engine;
 
-    public function __construct(SecurityAutomationService $security, \App\Services\Sentinel\AI\NeuralSentinelInference $inference)
+    public function __construct(SecurityAutomationService $security, BotDetectionEngine $engine)
     {
         $this->security = $security;
-        $this->inference = $inference;
+        $this->engine = $engine;
     }
 
     /**
@@ -32,18 +33,18 @@ class SecurityShield
         // 0.5 Administrator Context Sensitivity (High-Integrity Mode)
         $isSuperAdmin = auth()->check() && auth()->user()->role === 'super_admin';
 
-        // 1. Neural Risk Scoring (Phase 1: Proactive Prediction)
+        // 1. Risk Scoring (Phase 1: Proactive Prediction)
         if (!$isSuperAdmin && !$request->is('admin*')) {
-            $profile = $this->inference->introspectBehavior();
+            $profile = $this->engine->assess();
             
             // PHASE 2: Proof-of-Work Challenge (Adaptive Throttling)
-            if ($this->inference->needsPoW($profile) && !$request->is('admin/sentinel/challenge*')) {
+            if ($this->engine->needsChallenge($profile) && !$request->is('admin/sentinel/challenge*')) {
                 return redirect()->route('sentinel.challenge');
             }
 
-            if ($profile->trust_score < 10 || $profile->is_bot_probability > 0.95) {
-                $this->security->blockIp($request->ip(), "Neural Risk Failure (Score: {$profile->trust_score}, BotProb: {$profile->is_bot_probability})");
-                abort(403, 'Akses ditolak: Perilaku navigasi tidak wajar (Neural Sentinel Alert).');
+            if ($this->engine->shouldBlock($profile)) {
+                $this->security->blockIp($request->ip(), "Behavior Engine Block (Score: {$profile->trust_score}, BotProb: {$profile->is_bot_probability})");
+                abort(403, 'Akses ditolak: Perilaku navigasi tidak wajar (Risk Engine Alert).');
             }
         }
 
@@ -59,11 +60,11 @@ class SecurityShield
             $this->security->killDebugMode();
         }
 
-        // 3. Neural Asset Protection (Phantom Token Exchange)
+        // 3. Asset Protection (Phantom Token Exchange)
         if ($request->is('models/*')) {
             if (!$this->security->verifyHandshake($request)) {
-                $this->security->blockIp($request->ip(), 'Neural Handshake Failure (Invalid Phantom Token)');
-                abort(403, 'Akses model ditolak. Koneksi tidak tersinkronisasi.');
+                $this->security->blockIp($request->ip(), 'Handshake Failure (Invalid Phantom Token)');
+                abort(403, 'Akses ditolak. Koneksi tidak tersinkronisasi.');
             }
         }
 

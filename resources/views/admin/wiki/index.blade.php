@@ -61,8 +61,8 @@
         </div>
         <div class="p-8 bg-gradient-to-br from-white/[0.07] to-white/[0.02] border border-white/10 rounded-[2.5rem] relative overflow-hidden group">
             <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform"><i class="ri-cpu-line text-6xl text-primary"></i></div>
-            <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">AI Usage Status</div>
-            <div class="text-4xl font-black text-white tracking-tighter">Neural</div>
+            <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Engine Usage Status</div>
+            <div class="text-4xl font-black text-white tracking-tighter">Knowledge</div>
             <div class="mt-4 flex items-center gap-2 text-[10px] font-bold text-primary uppercase">
                 <span>Inference Active</span>
             </div>

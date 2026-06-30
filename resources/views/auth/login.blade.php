@@ -31,7 +31,7 @@
                 <input type="email" name="email" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-sky-500 transition-colors">
             </div>
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Neural Key (Password)</label>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Access Key (Password)</label>
                 <input type="password" name="password" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-sky-500 transition-colors">
             </div>
             <button type="submit" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 rounded-lg transition-all transform hover:scale-[1.02]">

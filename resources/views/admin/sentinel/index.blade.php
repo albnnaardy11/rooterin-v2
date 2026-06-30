@@ -12,7 +12,7 @@
                     <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
                     <h1 class="text-2xl font-black text-white tracking-tighter uppercase italic">System Sentinel <span class="text-primary/70">v1.2</span></h1>
                 </div>
-                <p class="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-500">Infrastucture Integrity & Multi-Modal AI Health Monitor</p>
+                <p class="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-500">Infrastucture Integrity & Engine Health Monitor</p>
             </div>
             <div class="flex items-center gap-4">
                 <div class="text-right hidden md:block">
@@ -32,7 +32,7 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             @php
                 $sections = [
-                    ['title' => 'AI Core', 'data' => $healthData['ai_integrity'], 'icon' => 'ri-cpu-line', 'field' => null],
+                    ['title' => 'Engine Health', 'data' => $healthData['engine_health'], 'icon' => 'ri-cpu-line', 'field' => null],
                     ['title' => 'Resources', 'data' => $healthData['infrastructure']['database'], 'icon' => 'ri-database-2-line', 'field' => 'pulse'],
                     ['title' => 'SEO API', 'data' => $healthData['seo_api_audit']['google_indexing'], 'icon' => 'ri-rocket-line', 'field' => null],
                     ['title' => 'Security', 'data' => $healthData['security']['environment'], 'icon' => 'ri-shield-check-line', 'field' => null],
@@ -262,7 +262,7 @@
                         </div>
                     </div>
                     <div class="pt-4 border-t border-white/5 flex justify-between items-center mt-4">
-                        <p class="text-[10px] font-black text-white uppercase tracking-tight">Neural Bridge</p>
+                        <p class="text-[10px] font-black text-white uppercase tracking-tight">API Bridge</p>
                         <span class="text-[9px] font-black text-green-500 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20">CONNECTED</span>
                     </div>
                 </div>

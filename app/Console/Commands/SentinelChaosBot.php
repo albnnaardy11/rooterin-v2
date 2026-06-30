@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Services\Sentinel\AI\NeuralSentinelInference;
+use App\Services\Sentinel\BotDetectionEngine;
 use App\Services\Sentinel\SentinelService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -27,7 +27,7 @@ class SentinelChaosBot extends Command
     /**
      * Execute the console command.
      */
-    public function handle(SentinelService $sentinel, NeuralSentinelInference $inference)
+    public function handle(SentinelService $sentinel, BotDetectionEngine $engine)
     {
         $this->warn('--- INITIATING SYSTEM STRESS TEST (SHADOW RAGNAROK) ---');
         
@@ -37,7 +37,7 @@ class SentinelChaosBot extends Command
         // 1. Simulate Behavioral Attacks (Teleport Trap & Cadence)
         $this->info('[CHAOS] Simulating High-Frequency Mechanical Cadence...');
         for ($i = 0; $i < 50; $i++) {
-            $inference->introspectBehavior();
+            $engine->assess();
             usleep(1000); // 1ms intervals
         }
 
